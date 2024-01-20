@@ -1,3 +1,5 @@
+using System.Reflection.Metadata;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -13,31 +15,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+static string RandomString()
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateTime.Now.AddDays(index),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.Run();
-
-internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    char[] chars = new char[]
+    {
+        'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'
+    };
+    string final_string_random = "";
+    Random random_int = new Random();
+    for (int i = 0; i < 10; i++)
+    {
+        final_string_random = final_string_random.Insert(i, chars[random_int.Next(25)].ToString());
+    }
+    return final_string_random;
 }
+app.MapGet("randomString", () => RandomString());
+app.MapGet("frases", async () => await new HttpClient().GetStringAsync("https://ron-swanson-quotes.herokuapp.com/v2/quotes"));
+app.Run();
