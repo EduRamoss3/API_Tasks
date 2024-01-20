@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<AppDbContext>(opt =>
+opt.UseInMemoryDatabase("TarefasDB"));
 
 var app = builder.Build();
 
@@ -15,7 +19,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+char[] vogals = new char[]
+{
+    'a','e','i','o','u'
+};
 static string RandomString()
 {
     char[] chars = new char[]
@@ -30,17 +37,58 @@ static string RandomString()
     }
     return final_string_random;
 }
-app.MapGet("randomString", () => RandomString());
-app.MapGet("frases", async () => await new HttpClient().GetStringAsync("https://ron-swanson-quotes.herokuapp.com/v2/quotes"));
+int VerifyVogals(string word)
+{
+    int count_vogals = 0;
+    char[] separate_chars = word.ToCharArray();
+    foreach (char character in separate_chars)
+    {
+        foreach (char vogal in vogals)
+        {
+            if (character == vogal)
+            {
+                count_vogals++;
+            }
+        }
+    }
+    return count_vogals;
+}
+app.MapGet("take_number_vogals", (string word) =>
+{
+    return VerifyVogals(word);
+});
+app.MapGet("tarefas_concluidas", async (AppDbContext context) =>
+{
+    return await context.Tarefas.Where(t => t.IsFinally).ToListAsync();
+});
+app.MapGet("/get_tarefas_by_id", async (AppDbContext context, int id) =>
+{
+    return await context.Tarefas.FindAsync(id) is Tasks task ? Results.Ok(task) : Results.NotFound();
+});
+app.MapGet("/tasks", async (AppDbContext context) =>
+{
+    return await context.Tarefas.ToListAsync();
+});
+app.MapPost("/create", async (AppDbContext context, Tasks tasks) =>
+{
+    context.Tarefas.AddAsync(tasks);
+    await context.SaveChangesAsync();
+    return Results.Created($"/create/{tasks.Id}", tasks);
+
+});
+app.MapGet("/randomString", () => RandomString());
+app.MapGet("/frases", async () => await new HttpClient().GetStringAsync("https://ron-swanson-quotes.herokuapp.com/v2/quotes"));
 app.Run();
 public class Tasks
 {
     public int Id { get; set; }
     public string? Name { get; set; }
     public bool IsFinally { get; set; }
-    
+
 }
 public class AppDbContext : DbContext
 {
-
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    { }
+    public DbSet<Tasks>? Tarefas => Set<Tasks>();
 }
