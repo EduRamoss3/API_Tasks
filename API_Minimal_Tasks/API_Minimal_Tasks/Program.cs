@@ -15,6 +15,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 static string RandomString()
 {
     char[] chars = new char[]
@@ -32,3 +33,14 @@ static string RandomString()
 app.MapGet("randomString", () => RandomString());
 app.MapGet("frases", async () => await new HttpClient().GetStringAsync("https://ron-swanson-quotes.herokuapp.com/v2/quotes"));
 app.Run();
+public class Tasks
+{
+    public int Id { get; set; }
+    public string? Name { get; set; }
+    public bool IsFinally { get; set; }
+    
+}
+public class AppDbContext : DbContext
+{
+
+}
