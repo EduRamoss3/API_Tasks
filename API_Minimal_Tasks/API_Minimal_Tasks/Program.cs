@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
@@ -84,7 +85,7 @@ public class Tasks
     public int Id { get; set; }
     public string? Name { get; set; }
     public bool IsFinally { get; set; }
-
+    public IDictionary<string, Task>? KeyTasks { get; set; }
 }
 public class AppDbContext : DbContext
 {
