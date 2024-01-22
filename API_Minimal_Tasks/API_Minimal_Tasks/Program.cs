@@ -77,6 +77,27 @@ app.MapPost("/create", async (AppDbContext context, Tasks tasks) =>
     return Results.Created($"/create/{tasks.Id}", tasks);
 
 });
+app.MapDelete("/tarefas/delete/{id}", async (AppDbContext context, int id) =>{
+    var find_task = context.Tarefas.Find(id);
+    if(find_task is Tasks)
+    {
+        context.Tarefas.Remove(find_task);
+        await context.SaveChangesAsync();
+        return Results.Ok(find_task);
+    }
+    return Results.NotFound(find_task);
+});
+app.MapPut("/tarefas/update/{id}", async (AppDbContext context, Tasks inputTask, int id) =>
+{
+    var find_task =  await context.Tarefas.FindAsync(id);
+    if(find_task is null) { return Results.NotFound(find_task); }
+    find_task = inputTask;
+    context.Tarefas.Update(find_task);
+    await context.SaveChangesAsync();
+    return Results.Accepted($"/tarefas/update/{find_task.Id}", find_task);
+
+
+});
 app.MapGet("/randomString", () => RandomString());
 app.MapGet("/frases", async () => await new HttpClient().GetStringAsync("https://ron-swanson-quotes.herokuapp.com/v2/quotes"));
 app.Run();
@@ -85,7 +106,6 @@ public class Tasks
     public int Id { get; set; }
     public string? Name { get; set; }
     public bool IsFinally { get; set; }
-    public IDictionary<string, Task>? KeyTasks { get; set; }
 }
 public class AppDbContext : DbContext
 {
